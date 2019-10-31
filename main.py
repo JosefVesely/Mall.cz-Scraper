@@ -6,7 +6,6 @@ import smtplib
 import schedule
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime
 from email.header import Header
 from email.mime.text import MIMEText
 
