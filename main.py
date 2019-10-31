@@ -32,7 +32,7 @@ class File:
             with open('price.txt', 'r+') as f:
                   f.seek(0)
                   f.truncate(0)  # erases the text file content
-                  f.write(price[:4])  # writes the current price into the file
+                  f.write(repr(price))  # writes the current price into the file
 
 file = File()
 f, latest_price = file.read()
@@ -42,25 +42,26 @@ def get_price():
       page = requests.get(URL, headers=headers)
       soup = BeautifulSoup(page.content, 'html.parser')
 
-      price = soup.find('b', class_=_class).get_text().strip().replace(' ', '')
-      int_price = int(price[:4])
+      price = soup.find('b', class_=_class).get_text()
+      price.strip().replace(' ', '')
+      price = int(price[:4])
 
-      return price, int_price
+      return price
 
-price, int_price = get_price()
+price = get_price()
 
 
 def create_message():
-      if int(latest_price) < int_price:
-          difference = int_price - int(latest_price)
-          description = f'Price raised by { difference }Kč!'
-      elif int(latest_price) > int_price:
-          difference = int(latest_price) - int_price
+      if int(latest_price) < price:
+          difference = price - int(latest_price)
+          description = f'Price raised by {difference}Kč!'
+      elif int(latest_price) > price:
+          difference = int(latest_price) - price
           description = f'Price dropped by {difference}Kč!'
       else:
           description = 'Price didn\'t changed!'
 
-      subject = f'Razer Ornata Chroma - {int_price}Kč'
+      subject = f'Razer Ornata Chroma - {price}Kč'
       message = f'{description}\n\n{URL}'
       return subject, message
 
