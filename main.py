@@ -13,13 +13,6 @@ from email.mime.text import MIMEText
 __author__ = 'Josef Veselý'
 
 
-with open('url.txt', 'r') as f:
-      URL = f.read()
-      shortener = Shortener('Tinyurl')
-      URL = shortener.short(URL)
-      print(URL)
-
-
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36'}
 
 class_name = 'lay-overflow-hidden word-break--word mt-5'
@@ -31,22 +24,36 @@ to = os.environ.get('EMAIL_ADDRESS')  # receiver's mail
 password = os.environ.get('EMAIL_PASSWORD')
 
 
+with open('url.txt', 'r') as f:
+      URL = f.read()
+
+# check if the url leads to MALL.CZ
+if 'https://www.mall.cz/' in URL:
+      shortener = Shortener('Tinyurl')
+      URL = shortener.short(URL)  # shorts the url -> www.tinyurl.com/link
+else:
+      print('Url address in file "url.txt" isn\'t link to website MALL.CZ. ')
+      print('If you want run the code properly, ')
+      input('replace the link with url, that is leading to it. ')
+      exit()
+
+
 class File:
       def read(self):
             with open('price.txt', 'r+') as f:  # opens the text file
                   latest_price = f.read()
-                  int(latest_price)
-                  return f, latest_price
+                  latest_price = int(latest_price)
+                  return latest_price
 
 
       def change(self):
             with open('price.txt', 'r+') as f:
                   f.seek(0)
                   f.truncate(0)  # erases the text file content
-                  f.write(repr(price))  # writes the current price into the file
+                  f.write(f'{price}')  # writes the current price into the file
 
 file = File()
-f, latest_price = file.read()
+latest_price = file.read()
 
 
 def scrape():
@@ -66,20 +73,20 @@ name, price = scrape()
 
 
 def create_message():
-      if int(latest_price) < price:
-          difference = price - int(latest_price)
+      if latest_price < price:
+          difference = price - latest_price
           description = f'Price raised by {difference}Kč!'
-      elif int(latest_price) > price:
-          difference = int(latest_price) - price
+      elif latest_price > price:
+          difference = latest_price - price
           description = f'Price dropped by {difference}Kč!'
       else:
           description = 'Price didn\'t changed!'
 
       subject = f'{name}'
-      message = f'{description} - {price}Kč\n\n{URL}'
-      return subject, message
+      content = f'{description} - {price}Kč\n\n{URL}'
+      return subject, content
 
-subject, message = create_message()
+subject, content = create_message()
 
 
 def send_mail():
@@ -87,7 +94,7 @@ def send_mail():
 
       create_message()  # creates the message content
 
-      msg = MIMEText(message, 'plain', 'utf-8')
+      msg = MIMEText(content, 'plain', 'utf-8')
       msg['Subject'] = Header(subject, 'utf-8')
       msg['From'] = frm
       msg['To'] = to
@@ -99,10 +106,11 @@ def send_mail():
             s.starttls()
             s.login(frm, password)
             s.sendmail(msg['From'], to, msg.as_string())
+            print('Mail sent!')
       finally:
             s.quit()
 
-      print('Mail sent!')
+      
       print(msg)
 
 
