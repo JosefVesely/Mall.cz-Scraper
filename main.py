@@ -27,14 +27,14 @@ password = os.environ.get('EMAIL_PASSWORD')
 with open('url.txt', 'r') as f:
       URL = f.read()
 
-# check if the url leads to MALL.CZ
+# check if the URL leads to MALL.CZ
 if 'https://www.mall.cz/' in URL:
       shortener = Shortener('Tinyurl')
-      URL = shortener.short(URL)  # shorts the url -> www.tinyurl.com/link
+      URL = shortener.short(URL)  # shorts the URL -> www.tinyurl.com/link
 else:
-      print('Url address in file "url.txt" isn\'t link to website MALL.CZ. ')
+      print('URL address in file "url.txt" isn\'t link to website MALL.CZ. ')
       print('If you want run the code properly, ')
-      input('replace the link with url, that is leading to it. ')
+      input('replace the link with URL, that is leading to it. ')
       exit()
 
 
@@ -60,7 +60,7 @@ def scrape():
       page = requests.get(URL, headers=headers)
       soup = BeautifulSoup(page.content, 'html.parser')
 
-      name = soup.find('h1', class_=class_name).get_text() # -> Razer Ornata Chroma
+      name = soup.find('h1', class_=class_name).get_text()  # -> Razer Ornata Chroma, US ...
 
       price = soup.find('b', class_=class_price).get_text().strip()  # -> 2 999Kč
       price = price.replace(' ', '')  # -> 2999Kč
@@ -92,13 +92,12 @@ subject, content = create_message()
 def send_mail():
       smtp_host = 'smtp.mail.yahoo.com'
 
-      create_message()  # creates the message content
+      create_message()
 
       msg = MIMEText(content, 'plain', 'utf-8')
       msg['Subject'] = Header(subject, 'utf-8')
       msg['From'] = frm
       msg['To'] = to
-
 
       s = smtplib.SMTP(smtp_host, 587)
 
@@ -109,9 +108,6 @@ def send_mail():
             print('Mail sent!')
       finally:
             s.quit()
-
-      
-      print(msg)
 
 
 file.read()
