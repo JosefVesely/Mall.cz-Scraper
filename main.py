@@ -7,24 +7,35 @@ import schedule
 import requests
 from bs4 import BeautifulSoup
 from email.header import Header
+from pyshorteners import Shortener
 from email.mime.text import MIMEText
 
-__author__ = 'Josef Veselý | u/3majorr'
+__author__ = 'Josef Veselý'
 
 
-URL = 'https://bit.ly/2M0tptf'
+with open('url.txt', 'r') as f:
+      URL = f.read()
+      shortener = Shortener('Tinyurl')
+      URL = shortener.short(URL)
+      print(URL)
+
+
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36'}
-_class = 'pro-price variant-BC con-emphasize font-primary--bold mr-5'
+
+class_name = 'lay-overflow-hidden word-break--word mt-5'
+class_price = 'pro-price variant-BC con-emphasize font-primary--bold mr-5'
+
 
 frm = 'scraper51@yahoo.com'  # sender's mail
-to = os.environ.get('EMAIL')  # receiver's mail
-password = os.environ.get('PASSWORD')
+to = os.environ.get('EMAIL_ADDRESS')  # receiver's mail
+password = os.environ.get('EMAIL_PASSWORD')
 
 
 class File:
       def read(self):
             with open('price.txt', 'r+') as f:  # opens the text file
                   latest_price = f.read()
+                  int(latest_price)
                   return f, latest_price
 
 
@@ -38,17 +49,18 @@ file = File()
 f, latest_price = file.read()
 
 
-def get_price():
+def scrape():
       page = requests.get(URL, headers=headers)
       soup = BeautifulSoup(page.content, 'html.parser')
 
-      price = soup.find('b', class_=_class).get_text()
-      price.strip().replace(' ', '')
-      price = int(price[:4])
+      name = soup.find('h1', class_=class_name).get_text() # -> Razer Ornata Chroma
 
-      return price
+      price = soup.find('b', class_=class_price).get_text().strip().replace(' ', '')  # -> 2999Kč
+      price = int(price[:4]) # -> 2999
+      print(price)
+      return name, price
 
-price = get_price()
+name, price = scrape()
 
 
 def create_message():
@@ -61,8 +73,8 @@ def create_message():
       else:
           description = 'Price didn\'t changed!'
 
-      subject = f'Razer Ornata Chroma - {price}Kč'
-      message = f'{description}\n\n{URL}'
+      subject = f'{name}'
+      message = f'{description} - {price}Kč\n\n{URL}'
       return subject, message
 
 subject, message = create_message()
@@ -77,6 +89,7 @@ def send_mail():
       msg['Subject'] = Header(subject, 'utf-8')
       msg['From'] = frm
       msg['To'] = to
+
 
       s = smtplib.SMTP(smtp_host, 587)
 
