@@ -55,8 +55,10 @@ def scrape():
 
       name = soup.find('h1', class_=class_name).get_text() # -> Razer Ornata Chroma
 
-      price = soup.find('b', class_=class_price).get_text().strip().replace(' ', '')  # -> 2999Kč
-      price = int(price[:4]) # -> 2999
+      price = soup.find('b', class_=class_price).get_text().strip()  # -> 2 999Kč
+      price = price.replace(' ', '')  # -> 2999Kč
+      price = int(price[:-2])  # -> 2999 - as a integer
+
       print(price)
       return name, price
 
