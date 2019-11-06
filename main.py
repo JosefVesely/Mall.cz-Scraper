@@ -3,7 +3,6 @@
 
 import os
 import smtplib
-import schedule
 import requests
 from bs4 import BeautifulSoup
 from email.header import Header
