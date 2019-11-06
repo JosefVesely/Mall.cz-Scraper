@@ -38,24 +38,6 @@ else:
       exit()
 
 
-class File:
-      def read(self):
-            with open('price.txt', 'r+') as f:  # opens the text file
-                  latest_price = f.read()
-                  latest_price = int(latest_price)
-                  return latest_price
-
-
-      def change(self):
-            with open('price.txt', 'r+') as f:
-                  f.seek(0)
-                  f.truncate(0)  # erases the text file content
-                  f.write(f'{price}')  # writes the current price into the file
-
-file = File()
-latest_price = file.read()
-
-
 def scrape():
       page = requests.get(URL, headers=headers)
       soup = BeautifulSoup(page.content, 'html.parser')
@@ -70,6 +52,28 @@ def scrape():
       return name, price
 
 name, price = scrape()
+
+
+class File:
+      def read(self):
+            with open(f'prices/{name}.txt', 'w+') as f:
+                  content = f.read()
+                  if content == '':
+                        f.write(f'{price}')
+                        content = price
+
+                  latest_price = int(content)
+                  return latest_price
+
+
+      def change(self):
+            with open(f'prices/{name}.txt', 'r+') as f:
+                  f.seek(0)
+                  f.truncate(0)  # erases the text file content
+                  f.write(f'{price}')  # writes the current price into the file
+
+file = File()
+latest_price = file.read()
 
 
 def create_message():
