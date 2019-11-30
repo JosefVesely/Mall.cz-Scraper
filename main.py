@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import smtplib
 import requests
 from bs4 import BeautifulSoup
@@ -26,28 +27,27 @@ password = os.environ.get('EMAIL_PASSWORD')
 with open('url.txt', 'r') as f:
       URL = f.read()
 
-# check if the URL leads to MALL.CZ
-if 'https://www.mall.cz/' in URL:
-      shortener = Shortener('Tinyurl')
-      URL = shortener.short(URL)  # shorts the URL -> www.tinyurl.com/link
-else:
-      print('URL address in file "url.txt" isn\'t link to website MALL.CZ. ')
-      print('If you want run the code properly, ')
-      input('replace the link with URL, that is leading to it. ')
-      exit()
+# check if URL starts with "http"
+if 'http' not in URL:
+      URL = f'http://{URL}'
 
 
 def scrape():
       page = requests.get(URL, headers=headers)
       soup = BeautifulSoup(page.content, 'html.parser')
 
-      name = soup.find('h1', class_=class_name).get_text()  # -> Razer Ornata Chroma, US ...
+      try:
+            name = soup.find('h1', class_=class_name).get_text()
+      except AttributeError:
+            print('''URL address in file "url.txt" isn\'t link to website MALL.CZ.
+                     If you want to run the code properly,
+                     replace the link with URL, that is leading to it. ''')
+            sys.exit()
 
       price = soup.find('b', class_=class_price).get_text().strip()  # -> 2 999Kč
       price = price.replace(' ', '')  # -> 2999Kč
       price = int(price[:-2])  # -> 2999 - as a integer
 
-      print(price)
       return name, price
 
 name, price = scrape()
@@ -83,13 +83,17 @@ def create_message():
           difference = latest_price - price
           description = f'Price dropped by {difference}Kč!'
       else:
-          description = 'Price didn\'t changed!'
+          description = 'Price didn\'t change!'
+
+      # short URL with Tinyurl
+      shortener = Shortener('Tinyurl')
+      short_URL = shortener.short(URL)  # shorts the URL -> www.tinyurl.com/link
 
       subject = f'{name}'
-      content = f'{description} - {price}Kč\n\n{URL}'
-      return subject, content
+      content = f'{description} - {price}Kč\n\n{short_URL}'
+      return subject, content, short_URL
 
-subject, content = create_message()
+subject, content, short_URL = create_message()
 
 
 def send_mail():
@@ -108,11 +112,31 @@ def send_mail():
             s.starttls()
             s.login(frm, password)
             s.sendmail(msg['From'], to, msg.as_string())
-            print('Mail sent!')
+            print('\n\n<--- Mail sent successfully! --->')
+      except:
+            print('\n\n<--- Mail not sent :( Check send_mail function for more info. --->')
       finally:
             s.quit()
+
+
+def info():
+      # prints some useful informations
+      print('\n== prices ==')
+      print(f'Latest price: {latest_price}Kč')
+      print(f'Current price: {price}Kč')
+
+      print('\n== message ==')
+      print(subject)
+      print(content)
+
+      print('\n== URLs ==')
+      print(f'URL: {URL}')
+      print(f'Short URL: {short_URL}')
 
 
 file.read()
 send_mail()
 file.change()
+
+print('\n----------------------')
+input('Press "Enter" to exit. ')
