@@ -5,15 +5,22 @@ import os
 import sys
 import smtplib
 import requests
+import colorama
 from bs4 import BeautifulSoup
+from termcolor import colored
 from email.header import Header
 from pyshorteners import Shortener
 from email.mime.text import MIMEText
 
+
 __author__ = 'Josef Veselý'
 
 
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36'}
+colorama.init()  # necessary to print colored text
+
+headers = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36'
+}
 
 class_name = 'lay-overflow-hidden word-break--word mt-5'
 class_price = 'pro-price variant-BC con-emphasize font-primary--bold mr-5'
@@ -25,28 +32,28 @@ password = os.environ.get('EMAIL_PASSWORD')
 
 
 with open('url.txt', 'r') as f:
-      URL = f.read()
+      url = f.read()
 
 # check if URL starts with "http"
-if 'http' not in URL:
-      URL = f'http://{URL}'
+if 'http' not in url:
+      url = f'http://{url}'
 
 
 def scrape():
-      page = requests.get(URL, headers=headers)
+      page = requests.get(url, headers=headers)
       soup = BeautifulSoup(page.content, 'html.parser')
 
       try:
             name = soup.find('h1', class_=class_name).get_text()
       except AttributeError:
-            print('''URL address in file "url.txt" isn\'t link to website MALL.CZ.
-                     If you want to run the code properly,
-                     replace the link with URL, that is leading to it. ''')
+            input('URL address in file "url.txt" isn\'t leading to any MALL.CZ product. ')
+
             sys.exit()
+
 
       price = soup.find('b', class_=class_price).get_text().strip()  # -> 2 999Kč
       price = price.replace(' ', '')  # -> 2999Kč
-      price = int(price[:-2])  # -> 2999 - as a integer
+      price = int(price[:-2])  # -> 2999 - as an int
 
       return name, price
 
@@ -85,15 +92,15 @@ def create_message():
       else:
           description = 'Price didn\'t change!'
 
-      # short URL with Tinyurl
+      # shorts URL with TinyUrl
       shortener = Shortener('Tinyurl')
-      short_URL = shortener.short(URL)  # shorts the URL -> www.tinyurl.com/link
+      short_url = shortener.short(url)  # shorts the URL -> www.tinyurl.com/link
 
       subject = f'{name}'
-      content = f'{description} - {price}Kč\n\n{short_URL}'
-      return subject, content, short_URL
+      content = f'{description} - {price}Kč\n\n{short_url}'
+      return subject, content, short_url
 
-subject, content, short_URL = create_message()
+subject, content, short_url = create_message()
 
 
 def send_mail():
@@ -112,31 +119,31 @@ def send_mail():
             s.starttls()
             s.login(frm, password)
             s.sendmail(msg['From'], to, msg.as_string())
-            print('\n\n<--- Mail sent successfully! --->')
+            print(colored('\n<--- Mail sent successfully! --->', 'green', attrs=['concealed']))
       except:
-            print('\n\n<--- Mail not sent :( Check send_mail function for more info. --->')
+            print(colored('\n<--- Mail not sent :( Check send_mail function for more info. --->', 'red'))
       finally:
             s.quit()
 
 
+def print_header(header):
+      return colored(f'\n  {header}  ', 'blue', 'on_white')
+
+
 def info():
       # prints some useful informations
-      print('\n== prices ==')
+      print(print_header('PRICE'))
       print(f'Latest price: {latest_price}Kč')
       print(f'Current price: {price}Kč')
 
-      print('\n== message ==')
+      print(print_header('MESSAGE'))
       print(subject)
       print(content)
 
-      print('\n== URLs ==')
-      print(f'URL: {URL}')
-      print(f'Short URL: {short_URL}')
-
 
 file.read()
+info()
 send_mail()
 file.change()
 
-print('\n----------------------')
-input('Press "Enter" to exit. ')
+input()
