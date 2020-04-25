@@ -1,2 +1,2 @@
-# keyboard-price-scraper
-Program, that scrapes the price of product on Czech E-shop "MALL.CZ". Saves it in a text file and sends me a e-mail with its price and compares it with the latest price.
+# mallcz-eshop-price-scraper
+Scrapes information about given product on Czech E-shop MALL.CZ and sends me an email with information of the product.
