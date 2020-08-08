@@ -1,2 +1,2 @@
-# mallcz-eshop-price-scraper
-Scrapes information about given product on Czech E-shop MALL.CZ and sends me an email with information of the product.
+# mallcz-scraper
+Scrapes information from MALL.CZ product. Compares price with latest price and writes me an email whether the price dropped or raised. 
